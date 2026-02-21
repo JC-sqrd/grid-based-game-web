@@ -1,11 +1,12 @@
-class TicTacToe {
+class ConnectFour {
     
     static GameState = {
         START : "START",
         XTURN : "XTURN",
         OTURN : "OTURN",
         XWIN : "XWIN",
-        OWIN : "OWIN"
+        OWIN : "OWIN",
+        UPDATING_PHYSICS : "UPDATING_PHYSICS"
     };
 
     static FirstTurn = {
@@ -25,18 +26,18 @@ class TicTacToe {
         
         switch(this.firstTurn) {
             case "X":
-                TicTacToe.gameState = TicTacToe.GameState.XTURN;
+                ConnectFour.gameState = ConnectFour.GameState.XTURN;
                 break;
             case "O":
-                TicTacToe.gameState = TicTacToe.GameState.OTURN;
+                ConnectFour.gameState = ConnectFour.GameState.OTURN;
                 break;
             default:
-                TicTacToe.gameState = TicTacToe.GameState.XTURN;
+                ConnectFour.gameState = ConnectFour.GameState.XTURN;
                 break;
         }
 
-        this.xTiles = [];
-        this.oTiles = [];
+        this.greenDiscs = [];
+        this.yellowDiscs = [];
 
         
         const paragraph = document.createElement('p');
@@ -52,23 +53,31 @@ class TicTacToe {
                 let mousePos = new Vector2(evt.offsetX, evt.offsetY);
                 let tileOnMouse = this.grid.getTileOnPoint(mousePos);
                 if (tileOnMouse != null && !tileOnMouse.occupied) {
-                    let tileData = {tile : tileOnMouse, x : tileOnMouse.x + (tileOnMouse.width / 2), y : tileOnMouse.y + (tileOnMouse.height / 2)};
+                    let discData = {tile : tileOnMouse, x : tileOnMouse.x + (tileOnMouse.width / 2), y : tileOnMouse.y + (tileOnMouse.height / 2), type : "NONE"};
                 
-                    if (TicTacToe.gameState == TicTacToe.GameState.XTURN) {
-                        tileData.tile.occupied = true;
-                        tileData.tile.type = "X";
-                        this.xTiles.push(tileData);
+                    if (ConnectFour.gameState == ConnectFour.GameState.XTURN) {
+                        //tileData.tile.occupied = true;
+                        //tileData.tile.type = "GREEN";
+                        discData.type = "GREEN";
+                        this.greenDiscs.push(discData);
+                        //Update Disc Gravity
+                        ConnectFour.gameState = ConnectFour.GameState.UPDATING_PHYSICS;
+                        let landedTile = this.updateDiscGravity(discData, tileOnMouse);
                         //Check if X wins, if not change turn
-                        console.log("X WIN: " + this.checkTileSequence(tileData.tile));
-                        TicTacToe.gameState = TicTacToe.GameState.OTURN;
+                        console.log("X WIN: " + this.checkTileSequence(landedTile));
+                        ConnectFour.gameState = ConnectFour.GameState.OTURN;
                     }
-                    else if (TicTacToe.gameState == TicTacToe.GameState.OTURN) {
-                        tileData.tile.occupied = true;
-                        tileData.tile.type = "O";
-                        this.oTiles.push(tileData);
+                    else if (ConnectFour.gameState == ConnectFour.GameState.OTURN) {
+                        //tileData.tile.occupied = true;
+                        //tileData.tile.type = "YELLOW";
+                        discData.type = "YELLOW";
+                        this.yellowDiscs.push(discData);
+                        //Update Disc Gravity
+                        ConnectFour.gameState = ConnectFour.GameState.UPDATING_PHYSICS;
+                        let landedTile = this.updateDiscGravity(discData, tileOnMouse);
                         // Check if O wins, if not change turn
-                        console.log("O WIN: " + this.checkTileSequence(tileData.tile));
-                        TicTacToe.gameState = TicTacToe.GameState.XTURN
+                        console.log("O WIN: " + this.checkTileSequence(landedTile));
+                        ConnectFour.gameState = ConnectFour.GameState.XTURN
                     }
                 }
                 //console.log("MOUSE POS: "  + mousePos.x + " " + mousePos.y)
@@ -77,8 +86,17 @@ class TicTacToe {
         );
     }
 
+
     startDrawLoop(ctx){
-        for (const x of this.xTiles) {
+
+         for (const o of this.yellowDiscs) {
+            ctx.fillStyle = "yellow";
+            ctx.beginPath(); 
+            ctx.arc(o.x, o.y, 20, 0, 2 * Math.PI);
+            ctx.fill(); 
+        }
+        
+        for (const x of this.greenDiscs) {
             ctx.fillStyle = "green"; 
 
             ctx.beginPath();
@@ -86,21 +104,54 @@ class TicTacToe {
             ctx.fill(); 
         }
 
-        for (const o of this.oTiles) {
-            ctx.fillStyle = "yellow";
-            ctx.beginPath(); 
-            ctx.arc(o.x, o.y, 20, 0, 2 * Math.PI);
-            ctx.fill(); 
-        }
+       
 
         requestAnimationFrame(this.startDrawLoop.bind(this, ctx));
+    }
+
+    updateDiscGravity(discData, startTile) {
+        let direction = new Vector2(0, 1);
+
+
+        let currentTile = startTile;
+        let downTile = this.grid.getNeighborTile(startTile, direction);
+        //{tile : tileOnMouse, x : tileOnMouse.x + (tileOnMouse.width / 2), y : tileOnMouse.y + (tileOnMouse.height / 2)};
+
+        if (downTile == null) {
+            currentTile.occupied = true;
+            currentTile.type = discData.type;
+            return currentTile;
+        }
+
+
+        while(true) {
+            if (downTile != null) {
+                if (!downTile.occupied) {
+                    //discData.x += (downTile.width / 2);
+                    discData.y += (downTile.height);
+                    currentTile = downTile;
+                    downTile = this.grid.getNeighborTile(downTile, direction);
+                }
+                else {
+                    currentTile.occupied = true;
+                    currentTile.type = discData.type;
+                    return currentTile;
+                }
+                
+            }
+            else {
+                currentTile.occupied = true;
+                currentTile.type = discData.type;
+                return currentTile;
+            }
+        }
+        
     }
 
     checkTileSequence(startTile) {
         let checkForType = startTile.type;
         let pivotTile = startTile;
-        let requiredSequence = 3;
-        let currentStreak = 1;
+        let requiredSequence = 4;
         let nextTile;
         let direction;
 
@@ -113,7 +164,6 @@ class TicTacToe {
         while (!doneChecking) {
             nextTile = this.grid.getNeighborTile(pivotTile, direction);
             if (nextTile != null && nextTile.type == checkForType) {
-                currentStreak += 1;
                 leftSequence += 1;
                 pivotTile = nextTile
             }
@@ -128,13 +178,11 @@ class TicTacToe {
         let topLeftSequence = 0;
         //console.log("CHECK DIRECTION: (-1, -1)");
         
-        currentStreak = 0;
         pivotTile = startTile;
         
         while (true) {
             nextTile = this.grid.getNeighborTile(pivotTile, direction);
             if (nextTile != null && nextTile.type == checkForType) {
-                currentStreak += 1;
                 topLeftSequence += 1;
                 pivotTile = nextTile
             }
@@ -149,13 +197,11 @@ class TicTacToe {
         let topSequence = 0;
         //console.log("CHECK DIRECTION: (0, -1)");
         
-        currentStreak = 1;
         pivotTile = startTile;
         
         while (true) {
             nextTile = this.grid.getNeighborTile(pivotTile, direction);
             if (nextTile != null && nextTile.type == checkForType) {
-                currentStreak += 1;
                 topSequence += 1;
                 pivotTile = nextTile
             }
@@ -169,13 +215,11 @@ class TicTacToe {
         let topRightSequence = 0;
         //console.log("CHECK DIRECTION: (1, 1)");
         
-        currentStreak = 1;
         pivotTile = startTile;
         
         while (true) {
             nextTile = this.grid.getNeighborTile(pivotTile, direction);
             if (nextTile != null && nextTile.type == checkForType) {
-                currentStreak += 1;
                 topRightSequence += 1;
                 pivotTile = nextTile
             }
@@ -189,13 +233,11 @@ class TicTacToe {
         let rightSequence = 0;
         //console.log("CHECK DIRECTION: (1, 0)");
         
-        currentStreak = 1;
         pivotTile = startTile;
         
         while (true) {
             nextTile = this.grid.getNeighborTile(pivotTile, direction);
             if (nextTile != null && nextTile.type == checkForType) {
-                currentStreak += 1;
                 rightSequence += 1;
                 pivotTile = nextTile
             }
@@ -209,14 +251,12 @@ class TicTacToe {
         direction = new Vector2(1, 1);
         let bottomRightSequence = 0;
         //console.log("CHECK DIRECTION: (1, 1)");
-        
-        currentStreak = 1;
+
         pivotTile = startTile;
         
         while (true) {
             nextTile = this.grid.getNeighborTile(pivotTile, direction);
             if (nextTile != null && nextTile.type == checkForType) {
-                currentStreak += 1;
                 bottomRightSequence += 1;
                 pivotTile = nextTile
             }
@@ -230,14 +270,12 @@ class TicTacToe {
         direction = new Vector2(0, 1);
         let bottomSequence = 0;
         //console.log("CHECK DIRECTION: (0, 1)");
-        
-        currentStreak = 1;
+
         pivotTile = startTile;
         
         while (true) {
             nextTile = this.grid.getNeighborTile(pivotTile, direction);
             if (nextTile != null && nextTile.type == checkForType) {
-                currentStreak += 1;
                 bottomSequence += 1;
                 pivotTile = nextTile
             }
@@ -252,13 +290,11 @@ class TicTacToe {
         let bottomLeftSequence = 0;
         //console.log("CHECK DIRECTION: (0, -1)");
         
-        currentStreak = 1;
         pivotTile = startTile;
         
         while (true) {
             nextTile = this.grid.getNeighborTile(pivotTile, direction);
             if (nextTile != null && nextTile.type == checkForType) {
-                currentStreak += 1;
                 bottomLeftSequence += 1;
                 pivotTile = nextTile
             }

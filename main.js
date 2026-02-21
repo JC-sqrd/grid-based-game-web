@@ -7,9 +7,10 @@ console.log(mainCanvas)
 const mainGrid = new Grid(new Vector2(100, 100), new Vector2(5,5), new Vector2(128,128));
 mainGrid.generateGrid();
 
+const connectFour = new ConnectFour(mainGrid, canvas, ConnectFour.FirstTurn.X);
 
-
-const ticTacToe = new TicTacToe(mainGrid, canvas, TicTacToe.FirstTurn.X);
 mainGrid.debugDraw = true;
+
 mainGrid.startDrawLoop(ctx);
-ticTacToe.startDrawLoop(ctx);
+
+connectFour.startDrawLoop(ctx)
