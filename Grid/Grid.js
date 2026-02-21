@@ -47,6 +47,8 @@ class Grid {
 
     getNeighborTile(tile, direction){
         let clampedDirection = new Vector2(direction.x == 0 ? 0 : direction.x / Math.abs(direction.x), direction.y == 0 ? 0 : direction.y / Math.abs(direction.y));
+        console.log("CLMAPED DIRECTION: ");
+        console.log(clampedDirection);
         let neighborGridPos = new Vector2(tile.gridPos.x + clampedDirection.x, tile.gridPos.y + clampedDirection.y);
         return this.getTileOnGridPos(neighborGridPos);
     }

@@ -165,7 +165,7 @@ class TicTacToe {
         }
 
         //Check direction : (1, 1)
-        direction = new Vector2(1, 1);
+        direction = new Vector2(1, -1);
         let topRightSequence = 0;
         //console.log("CHECK DIRECTION: (1, 1)");
         
@@ -255,7 +255,7 @@ class TicTacToe {
         currentStreak = 1;
         pivotTile = startTile;
         
-        while (currentStreak < requiredSequence) {
+        while (true) {
             nextTile = this.grid.getNeighborTile(pivotTile, direction);
             if (nextTile != null && nextTile.type == checkForType) {
                 currentStreak += 1;
@@ -279,16 +279,16 @@ class TicTacToe {
         console.log("DOWN RIGHT DIAGONAL SEQUENCE: " + topRightSequence + " + "+ bottomLeftSequence + " = " + downRightDiagonalSequence);
         console.log("REQUIRED SEQUENCE: " + requiredSequence);
 
-        if (horizontalSequence == requiredSequence) {
+        if (horizontalSequence >= requiredSequence) {
             return true;
         }
-        else if (verticalSequence == requiredSequence) {
+        else if (verticalSequence >= requiredSequence) {
             return true;
         }
-        else if (downLeftDiagonalSequence == requiredSequence) {
+        else if (downLeftDiagonalSequence >= requiredSequence) {
             return true;
         }
-        else if (downRightDiagonalSequence == requiredSequence) {
+        else if (downRightDiagonalSequence >= requiredSequence) {
             return true;
         }
 

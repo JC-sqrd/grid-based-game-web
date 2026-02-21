@@ -4,7 +4,7 @@ const mainCanvas = new MainCanvas(canvas);
 
 console.log(mainCanvas)
 
-const mainGrid = new Grid(new Vector2(100, 100), new Vector2(3,3), new Vector2(128,128));
+const mainGrid = new Grid(new Vector2(100, 100), new Vector2(5,5), new Vector2(128,128));
 mainGrid.generateGrid();
 
 
