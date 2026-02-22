@@ -21,6 +21,11 @@ class TicTacToe {
         this.ctx = canvas.getContext('2d');
         this.firstTurn = firstTurn;
 
+        this.canvas.width = grid.gridSize.x * grid.tileSize.x;
+        this.canvas.height = grid.gridSize.y * grid.tileSize.y;
+
+        this.grid.generateGrid();
+        
         this.#addEventListener();
         
         switch(this.firstTurn) {
@@ -37,12 +42,7 @@ class TicTacToe {
 
         this.xTiles = [];
         this.oTiles = [];
-
-        
-        const paragraph = document.createElement('p');
-        paragraph.textContent = "TIC TAC TOE";
-        document.body.appendChild(paragraph);
-
+    
     }
 
     #addEventListener() {
@@ -59,7 +59,15 @@ class TicTacToe {
                         tileData.tile.type = "X";
                         this.xTiles.push(tileData);
                         //Check if X wins, if not change turn
-                        console.log("X WIN: " + this.checkTileSequence(tileData.tile));
+                        let xWin = this.checkTileSequence(tileOnMouse);
+                        if (xWin) {
+                            window.requestAnimationFrame(() => {
+                                window.requestAnimationFrame(() => {
+                                    alert("GREEN Player Wins!");
+                                    this.resetGame();
+                                })
+                            });
+                        }
                         TicTacToe.gameState = TicTacToe.GameState.OTURN;
                     }
                     else if (TicTacToe.gameState == TicTacToe.GameState.OTURN) {
@@ -67,7 +75,15 @@ class TicTacToe {
                         tileData.tile.type = "O";
                         this.oTiles.push(tileData);
                         // Check if O wins, if not change turn
-                        console.log("O WIN: " + this.checkTileSequence(tileData.tile));
+                        let oWin = this.checkTileSequence(tileOnMouse);
+                        if (oWin) {
+                            window.requestAnimationFrame(() => {
+                                window.requestAnimationFrame(() => {
+                                    alert("YELLOW Player Wins!");
+                                    this.resetGame();
+                                })
+                            });
+                        }
                         TicTacToe.gameState = TicTacToe.GameState.XTURN
                     }
                 }
@@ -78,6 +94,7 @@ class TicTacToe {
     }
 
     startDrawLoop(ctx){
+        this.grid.startDrawLoop(ctx);
         for (const x of this.xTiles) {
             ctx.fillStyle = "green"; 
 
@@ -94,6 +111,23 @@ class TicTacToe {
         }
 
         requestAnimationFrame(this.startDrawLoop.bind(this, ctx));
+    }
+
+    resetGame() {
+        for (const x of this.xTiles) {
+            x.tile.occupied = false;
+            x.tile.type = "NONE";
+        }
+
+        for (const o of this.oTiles) {
+            o.tile.occupied = false;
+            o.tile.type = "NONE";
+        }
+
+        this.xTiles = [];
+        this.oTiles = [];
+
+        this.grid.generateGrid();
     }
 
     checkTileSequence(startTile) {

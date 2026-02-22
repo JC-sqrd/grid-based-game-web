@@ -3,7 +3,7 @@ class MainCanvas {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
 
-        this.canvas.width = 900;
-        this.canvas.height = 900;
+        this.canvas.width = 1200;
+        this.canvas.height = 1200;
     }
 }

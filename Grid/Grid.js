@@ -11,6 +11,7 @@ class Grid {
     }
 
     generateGrid() {
+        this.tiles = [];
         let xIndex = 0;
         for (let column of this.columns) {
             let yIndex = 0;

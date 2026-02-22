@@ -22,6 +22,11 @@ class ConnectFour {
         this.ctx = canvas.getContext('2d');
         this.firstTurn = firstTurn;
 
+        this.canvas.width = grid.gridSize.x * grid.tileSize.x;
+        this.canvas.height = grid.gridSize.y * grid.tileSize.y;
+
+        this.grid.generateGrid();
+
         this.#addEventListener();
         
         switch(this.firstTurn) {
@@ -38,12 +43,6 @@ class ConnectFour {
 
         this.greenDiscs = [];
         this.yellowDiscs = [];
-
-        
-        const paragraph = document.createElement('p');
-        paragraph.textContent = "TIC TAC TOE";
-        document.body.appendChild(paragraph);
-
     }
 
     #addEventListener() {
@@ -56,39 +55,76 @@ class ConnectFour {
                     let discData = {tile : tileOnMouse, x : tileOnMouse.x + (tileOnMouse.width / 2), y : tileOnMouse.y + (tileOnMouse.height / 2), type : "NONE"};
                 
                     if (ConnectFour.gameState == ConnectFour.GameState.XTURN) {
-                        //tileData.tile.occupied = true;
-                        //tileData.tile.type = "GREEN";
+                        
                         discData.type = "GREEN";
                         this.greenDiscs.push(discData);
+                        
                         //Update Disc Gravity
                         ConnectFour.gameState = ConnectFour.GameState.UPDATING_PHYSICS;
                         let landedTile = this.updateDiscGravity(discData, tileOnMouse);
+                        
+
                         //Check if X wins, if not change turn
-                        console.log("X WIN: " + this.checkTileSequence(landedTile));
+                        let xWin = this.checkTileSequence(landedTile);
+                        if (xWin) {
+                            window.requestAnimationFrame(() => {
+                                window.requestAnimationFrame(() => {
+                                    alert("GREEN Player Wins!");
+                                    this.resetGame();
+                                })
+                            });
+                            //alert("X Player Wins!");
+                        }
+                        
                         ConnectFour.gameState = ConnectFour.GameState.OTURN;
                     }
                     else if (ConnectFour.gameState == ConnectFour.GameState.OTURN) {
-                        //tileData.tile.occupied = true;
-                        //tileData.tile.type = "YELLOW";
+                        
                         discData.type = "YELLOW";
                         this.yellowDiscs.push(discData);
+                        
                         //Update Disc Gravity
                         ConnectFour.gameState = ConnectFour.GameState.UPDATING_PHYSICS;
                         let landedTile = this.updateDiscGravity(discData, tileOnMouse);
+                        
                         // Check if O wins, if not change turn
-                        console.log("O WIN: " + this.checkTileSequence(landedTile));
+                        let oWin = this.checkTileSequence(landedTile);
+                        if (oWin) {
+                            window.requestAnimationFrame(() => {
+                                window.requestAnimationFrame(() => {
+                                    alert("YELLOW Player Wins!");
+                                    this.resetGame();
+                                })
+                            });
+                        }
                         ConnectFour.gameState = ConnectFour.GameState.XTURN
                     }
                 }
-                //console.log("MOUSE POS: "  + mousePos.x + " " + mousePos.y)
-                //console.log(tileOnMouse);
             }
         );
     }
 
+    resetGame() {
+        for (const disc of this.yellowDiscs) {
+            disc.tile.occupied = false;
+            disc.tile.type = "NONE";
+            disc.type = "NONE";
+        }
+
+        for (const disc of this.greenDiscs) {
+            disc.tile.occupied = false;
+            disc.tile.type = "NONE";
+            disc.type = "NONE";
+        }
+
+        this.yellowDiscs = [];
+        this.greenDiscs = [];
+
+        this.grid.generateGrid();
+    }
 
     startDrawLoop(ctx){
-
+        this.grid.startDrawLoop(ctx);
          for (const o of this.yellowDiscs) {
             ctx.fillStyle = "yellow";
             ctx.beginPath(); 
@@ -104,10 +140,27 @@ class ConnectFour {
             ctx.fill(); 
         }
 
-       
-
         requestAnimationFrame(this.startDrawLoop.bind(this, ctx));
     }
+
+    draw(ctx) {
+
+        for (const o of this.yellowDiscs) {
+            ctx.fillStyle = "yellow";
+            ctx.beginPath(); 
+            ctx.arc(o.x, o.y, 20, 0, 2 * Math.PI);
+            ctx.fill(); 
+        }
+        
+        for (const x of this.greenDiscs) {
+            ctx.fillStyle = "green"; 
+
+            ctx.beginPath();
+            ctx.arc(x.x, x.y, 20, 0, 2 * Math.PI);
+            ctx.fill(); 
+        }
+    }
+
 
     updateDiscGravity(discData, startTile) {
         let direction = new Vector2(0, 1);
